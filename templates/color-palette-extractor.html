@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ubah Warna Jadi Inspirasi</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+        body {
+            margin: 0;
+            background-color: #121212;
+            color: #ddd;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #8a2be2;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        p.subtitle {
+            margin-top: 0;
+            margin-bottom: 2rem;
+            color: #bbb;
+            max-width: 700px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+
+        .container.image-uploaded {
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+
+
+        .container.image-uploaded {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .container:not(.image-uploaded) {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .upload-box {
+            background: #1e1e1e;
+            /* border: 2px dashed #555; */
+            border-radius: 8px;
+            /* width: 320px;
+            height: 320px; */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            cursor: pointer;
+            position: relative;
+            transition: border-color 0.3s;
+            width: 300px;
+            height: auto;
+            border: 2px dashed #666;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .upload-box.dragover {
+            border-color: #8a2be2;
+            color: #8a2be2;
+        }
+
+        .upload-box img {
+            max-width: 60%;
+            max-height: 60%;
+            border-radius: 6px;
+            object-fit: fill;
+        }
+
+        .upload-text {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .upload-button {
+            margin-top: 1rem;
+            background-color: #8a2be2;
+            border: none;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 90%;
+            box-sizing: border-box;
+        }
+
+        .upload-button:hover {
+            background-color: #6a1fb8;
+        }
+
+        .palette {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-width: 280px;
+        }
+
+        .color-item {
+            background: #2a2a2a;
+            border-radius: 6px;
+            padding: 0.8rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #2a2a2a;
+            font-family: monospace;
+            font-weight: 600;
+            user-select: all;
+        }
+
+        .color-label {
+            font-size: 0.75rem;
+            color: #2a2a2a;
+            margin-bottom: 0.2rem;
+        }
+
+        .color-hex {
+            flex-grow: 1;
+        }
+
+        .copy-button {
+            background: transparent;
+            border: none;
+            color: #8a2be2;
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin-left: 0.8rem;
+            transition: color 0.3s;
+        }
+
+        .copy-button:hover {
+            color: #6a1fb8;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+
+    </style>
+</head>
+
+<body>
+    <h1>Ubah Warna Jadi Inspirasi!</h1>
+    <p class="subtitle">Konversi warna menjadi aesthetic dalam hitungan detik.<br />Didesain untuk desainer, developer,
+        dan kreator.</p>
+    <div class="container">
+        <label class="upload-box" id="uploadBox" for="imageInput" tabindex="0"
+            aria-label="Tarik dan masukkan gambar kamu disini atau klik untuk upload">
+            <img src="/static/InputImage.png" alt="Upload Illustration"
+                id="uploadIllustration" />
+            <div class="upload-text">Tarik dan masukkan gambar kamu disini!</div>
+            <button type="button" class="upload-button" id="custom-upload-button">Upload Gambar</button>
+            <input type="file" id="imageInput" accept="image/*" class="hidden" />
+        </label>
+        <div class="palette" id="palette">
+            <!-- Color items will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('custom-upload-button').addEventListener('click', function () {
+            document.getElementById('imageInput').click();
+        });
+
+        document.getElementById('imageInput').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                console.log("File dipilih:", file.name);
+                // Lanjutkan proses upload atau preview file di sini
+            }
+        });
+
+        const uploadBox = document.getElementById('uploadBox');
+        const imageInput = document.getElementById('imageInput');
+        const paletteContainer = document.getElementById('palette');
+        const uploadIllustration = document.getElementById('uploadIllustration');
+
+        // Number of colors to extract
+        const NUM_COLORS = 4;
+
+        // Utility: Convert RGB to Hex
+        function rgbToHex(r, g, b) {
+            return "#" + [r, g, b].map(x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? "0" + hex : hex;
+            }).join('');
+        }
+
+        // Extract dominant colors using canvas quantization
+        function extractColors(image, colorCount) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const width = image.naturalWidth || image.width;
+            const height = image.naturalHeight || image.height;
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(image, 0, 0, width, height);
+
+            // Get image data
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+
+            // Count colors frequency (simple quantization)
+            const colorMap = new Map();
+            for (let i = 0; i < data.length; i += 4) {
+                // Ignore transparent pixels
+                if (data[i + 3] < 128) continue;
+                // Quantize colors to reduce variations
+                const r = Math.round(data[i] / 32) * 32;
+                const g = Math.round(data[i + 1] / 32) * 32;
+                const b = Math.round(data[i + 2] / 32) * 32;
+                const key = r + ',' + g + ',' + b;
+                colorMap.set(key, (colorMap.get(key) || 0) + 1);
+            }
+
+            // Sort colors by frequency
+            const sortedColors = [...colorMap.entries()].sort((a, b) => b[1] - a[1]);
+
+            // Take top colors
+            const topColors = sortedColors.slice(0, colorCount).map(c => {
+                const [r, g, b] = c[0].split(',').map(Number);
+                return {
+                    r,
+                    g,
+                    b
+                };
+            });
+
+            return topColors;
+        }
+
+        // Render palette colors
+        function renderPalette(colors) {
+            paletteContainer.innerHTML = '';
+            colors.forEach(color => {
+                const hex = rgbToHex(color.r, color.g, color.b);
+                const colorItem = document.createElement('div');
+                colorItem.className = 'color-item';
+                colorItem.style.backgroundColor = hex;
+
+                const label = document.createElement('div');
+                label.className = 'color-label';
+                label.textContent = 'Hex';
+
+                const hexCode = document.createElement('div');
+                hexCode.className = 'color-hex';
+                hexCode.textContent = hex;
+
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-button';
+                copyBtn.title = 'Salin kode warna';
+                copyBtn.innerHTML = '&#128203;'; // clipboard icon
+                copyBtn.addEventListener('click', () => {
+                    navigator.clipboard.writeText(hex).then(() => {
+                        copyBtn.textContent = '✓';
+                        setTimeout(() => copyBtn.innerHTML = '&#128203;', 1500);
+                    });
+                });
+
+                colorItem.appendChild(label);
+                colorItem.appendChild(hexCode);
+                colorItem.appendChild(copyBtn);
+                paletteContainer.appendChild(colorItem);
+            });
+        }
+
+        document.querySelector('.container').classList.add('image-uploaded');
+        document.getElementById('palette').style.display = 'flex';
+
+        // Handle image upload and extract colors
+        function handleImage(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            fetch('http://localhost:5000/extract-colors', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(colors => {
+                    const colorObjects = colors.map(hex => {
+                        const r = parseInt(hex.substr(1, 2), 16);
+                        const g = parseInt(hex.substr(3, 2), 16);
+                        const b = parseInt(hex.substr(5, 2), 16);
+                        return {
+                            r,
+                            g,
+                            b
+                        };
+                    });
+                    renderPalette(colorObjects);
+
+                    const img = new Image();
+                    img.onload = () => uploadIllustration.src = img.src;
+                    img.src = URL.createObjectURL(file);
+                })
+                .catch(err => alert("Gagal memproses gambar."));
+        }
+
+
+        // Drag and drop handlers
+        uploadBox.addEventListener('dragover', e => {
+            e.preventDefault();
+            uploadBox.classList.add('dragover');
+        });
+        uploadBox.addEventListener('dragleave', e => {
+            e.preventDefault();
+            uploadBox.classList.remove('dragover');
+        });
+        uploadBox.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadBox.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                handleImage(e.dataTransfer.files[0]);
+            }
+        });
+
+        // File input change handler
+        imageInput.addEventListener('change', e => {
+            if (e.target.files.length > 0) {
+                handleImage(e.target.files[0]);
+            }
+        });
+
+        // Keyboard accessibility: trigger file input on Enter or Space
+        uploadBox.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                imageInput.click();
+            }
+        });
+    </script>
+    
+</body>
+
+</html>
