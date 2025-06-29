@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template
-from flask_cors import CORS  # Tambahkan ini
+from flask_cors import CORS 
 from sklearn.cluster import KMeans
 import numpy as np
 import cv2
