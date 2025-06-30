@@ -1,4 +1,4 @@
-#🎨 Color Detector
+# 🎨 Color Detector
 
 A simple web-based application that detects the dominant colors from an image using K-Means Clustering. Built with Python, Flask, OpenCV, and scikit-learn.
 
